@@ -3,12 +3,12 @@
 import configparser as ConfigParser
 import os
 
-class Config:
+class Login_info:
 
     def __init__(self):
         self.cf = ConfigParser.ConfigParser()
         # file_path = ".."+os.sep+"config"+os.sep+"config.ini" # 用os.sep来实现跨平台, config.ini文件要在同一个文件夹下
-        file_path = os.path.dirname(os.path.realpath(__file__))+os.sep+'..'+os.sep+"config"+os.sep+"config.ini"
+        file_path = os.path.dirname(os.path.realpath(__file__))+os.sep+'..'+os.sep+"login_info"+os.sep+"info.ini"
         # 用os.sep来实现跨平台, config.ini文件要在同一个文件夹下
         self.is_file_exist = True
         
@@ -16,9 +16,9 @@ class Config:
             self.cf.read(file_path)
         else:
             self.is_file_exist = False
-            print("config.ini file doesn't exist!")
+            print("info.ini file doesn't exist!")
     
-    def get_config_version(self):
+    def get_info_version(self):
         # This method is for user to get the version of the config program
         
         if self.is_file_exist is False:
@@ -28,7 +28,7 @@ class Config:
         str_version = self.cf.get("version", "version")  # 获取版本信息
         return str_version
     
-    def get_config_info(self):
+    def get_info_info(self, account):
         """
         This method is for user to get the database info which is stored in the config.ini file
         """
@@ -36,19 +36,31 @@ class Config:
             print("Error: Cannot get the database value!")
             return
         
-        nike_items = self.cf.options("nike")  # 判断信息是否足够
-        if 'total' not in nike_items:
-            print("please input username in the config.ini file")
+        nike_items = self.cf.options(account)  # 判断信息是否足够
+        if 'username' not in nike_items:
+            print("please input username in the info.ini file")
+            raise IOError
+        elif 'password' not in nike_items:
+            print("please input password in the info.ini file")
             raise IOError
 
-        total = self.cf.get("nike", "total")
-        return {'total': total
+        username = self.cf.get(account, "username")
+        password = self.cf.get(account, "password")
+        return {'username': username,
+                'password': password
                 }
+
+
+    def loop_get_info_info(self):
+        for n in range(1, 3+1):
+            nike = self.get_info_info("nike_"+ str(n))
+            print('username:', nike['username'])
+
                         
 
 if __name__ == '__main__':
-    nike_config = Config()
-    version = nike_config.get_config_version()  # get the version
-    nike = nike_config.get_config_info()
-    print('version:'+version)
-    print('total:', nike['total'])
+    huya_config = Login_info()
+    version = huya_config.get_info_version()  # get the version
+    nike = huya_config.loop_get_info_info()
+    # print('version:'+version)
+    # print('username:', nike['username'])
