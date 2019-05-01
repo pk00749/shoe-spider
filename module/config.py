@@ -42,7 +42,9 @@ class Config:
             raise IOError
 
         total = self.cf.get("nike", "total")
-        return {'total': total
+        url = self.cf.get("nike", "url")
+        return {'total': total,
+                'url': url
                 }
                         
 
@@ -51,4 +53,4 @@ if __name__ == '__main__':
     version = nike_config.get_config_version()  # get the version
     nike = nike_config.get_config_info()
     print('version:'+version)
-    print('total:', nike['total'])
+    print('total:', nike['url'])

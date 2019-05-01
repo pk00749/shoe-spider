@@ -51,16 +51,7 @@ class Login_info:
                 }
 
 
-    def loop_get_info_info(self):
-        for n in range(1, 3+1):
-            nike = self.get_info_info("nike_"+ str(n))
-            print('username:', nike['username'])
-
-                        
-
 if __name__ == '__main__':
     huya_config = Login_info()
     version = huya_config.get_info_version()  # get the version
-    nike = huya_config.loop_get_info_info()
-    # print('version:'+version)
-    # print('username:', nike['username'])
+    nike = huya_config.get_info_info("nike_1")
