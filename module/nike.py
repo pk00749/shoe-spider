@@ -4,6 +4,7 @@ import logging
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver import ActionChains
 from module.login_info import Login_info
 from module.config import Config
@@ -37,17 +38,17 @@ class conphantomjs:
         self.username = self.user_info['username']
         self.password = self.user_info['password']
 
-    def get_snap(self, driver):
+    def get_snap(self, driver, name):
         '''
         对整个网页截图，保存成图片，然后用PIL.Image拿到图片对象
         :return: 图片对象
         '''
-        driver.save_screenshot('snap.png')
-        page_snap_obj = Image.open('snap.png')
+        driver.save_screenshot('{pic}.png'.format(pic=name))
+        page_snap_obj = Image.open('{pic}.png'.format(pic=name))
         return page_snap_obj
 
-    def get_image(self, driver):
-        '''
+    def get_image(self, driver, name):
+        '''`
         从网页的网站截图中，截取验证码图片
         :return: 验证码图片
         '''
@@ -62,7 +63,7 @@ class conphantomjs:
         left = location['x']
         right = location['x'] + size['width']
 
-        page_snap_obj = self.get_snap(driver)
+        page_snap_obj = self.get_snap(driver, name)
         crop_imag_obj = page_snap_obj.crop((left, top, right, bottom))
         return crop_imag_obj
 
@@ -83,8 +84,8 @@ class conphantomjs:
                 res2 = abs(rgb1[1] - rgb2[1])
                 res3 = abs(rgb1[2] - rgb2[2])
                 if not (res1 < threshold and res2 < threshold and res3 < threshold):
-                    return i - 7  # 经过测试，误差为大概为7
-        return i - 7  # 经过测试，误差为大概为7
+                    return i - 10  # 经过测试，误差为大概为7
+        return i - 10  # 经过测试，误差为大概为7
 
     def get_tracks(self, distance):
         '''
@@ -151,12 +152,13 @@ class conphantomjs:
         button.click()
         time.sleep(1)
         # 步骤二：拿到没有缺口的图片
-        image1 = self.get_image(d)
+        d.execute_script('document.querySelectorAll("canvas")[2].style=""')
+        image1 = self.get_image(d, 'ori')
         # 步骤三：点击拖动按钮，弹出有缺口的图片
         button = wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'geetest_slider_button')))
         button.click()
         # 步骤四：拿到有缺口的图片
-        image2 = self.get_image(d)
+        image2 = self.get_image(d, 'after')
 
         print(image1,image1.size)
         print(image2,image2.size)
@@ -181,7 +183,7 @@ class conphantomjs:
 
         time.sleep(0.5)  # 0.5秒后释放鼠标
         ActionChains(d).release().perform()
-
+        time.sleep(20)
         # 步骤八：完成登录
         login = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="guestLogin"]/div[2]/div[5]')))
         #//*[@id="guestLogin"]/div[2]/div[5]
@@ -195,6 +197,8 @@ class conphantomjs:
         def open_threading():
             chromedriver = "C:\Program Files (x86)\Google\Chrome\Application\chromedriver.exe"
             os.environ["webdriver.chrome.driver"] = chromedriver
+            desired_capabilities = DesiredCapabilities.CHROME
+            desired_capabilities["pageLoadStrategy"] = "none"
             option = webdriver.ChromeOptions()
             d = webdriver.Chrome(chromedriver, chrome_options=option)
 
