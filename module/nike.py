@@ -54,7 +54,7 @@ class conphantomjs:
         '''
         wait = WebDriverWait(driver, 10)
         img = wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'geetest_canvas_img')))
-        time.sleep(2)  # 保证图片刷新出来
+        time.sleep(1)  # 保证图片刷新出来
         location = img.location
         size = img.size
 
@@ -138,30 +138,29 @@ class conphantomjs:
         d.get(self.home_url)
         print('logging, user name: %s' % self.username)
         wait = WebDriverWait(d, 20)
-        #//*[@id="loginName"] //*[@id="loginName"]
         input_name = wait.until(EC.presence_of_element_located((By.XPATH, "//*[@id='loginName']")))
-        # ele = d.find_element_by_xpath('//*[@id="loginName"]') #loginName
-        # ele.send_keys(self.username)
         # input_name.clear()
         input_name.send_keys(self.username)
-        #//*[@id="loginPass"]
         input_password = wait.until(EC.presence_of_element_located((By.XPATH, "//*[@id='loginPass']")))
         input_password.send_keys(self.password)
-        time.sleep(2)
-        button = wait.until(EC.presence_of_element_located((By.CLASS_NAME,'geetest_radar_tip')))
+        time.sleep(1)
+        button = wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'geetest_radar_tip')))
         button.click()
         time.sleep(1)
+
         # 步骤二：拿到没有缺口的图片
         d.execute_script('document.querySelectorAll("canvas")[2].style=""')
         image1 = self.get_image(d, 'ori')
+
         # 步骤三：点击拖动按钮，弹出有缺口的图片
         button = wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'geetest_slider_button')))
         button.click()
+
         # 步骤四：拿到有缺口的图片
         image2 = self.get_image(d, 'after')
 
-        print(image1,image1.size)
-        print(image2,image2.size)
+        print(image1, image1.size)
+        print(image2, image2.size)
         # 步骤五：对比两张图片的所有RBG像素点，得到不一样像素点的x值，即要移动的距离
         distance = self.get_distance(image1, image2)
 
@@ -183,10 +182,9 @@ class conphantomjs:
 
         time.sleep(0.5)  # 0.5秒后释放鼠标
         ActionChains(d).release().perform()
-        time.sleep(20)
+        time.sleep(2)
         # 步骤八：完成登录
         login = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="guestLogin"]/div[2]/div[5]')))
-        #//*[@id="guestLogin"]/div[2]/div[5]
         login.click()
         time.sleep(20)
 
