@@ -9,9 +9,10 @@ from selenium.webdriver import ActionChains
 from module.login_info import Login_info
 from module.config import Config
 from PIL import Image
+from bs4 import BeautifulSoup
 
 PHANTOMJS_MAX = 1
-
+special_edition_url = 'https://www.nike.com.hk/special_editions/list.htm?intpromo=PNTP'
 # logging.basicConfig(level=logging.INFO,
 #                     filename='../log/in_room.log',
 #                     datefmt='%Y/%m/%d %H:%M:%S',
@@ -54,7 +55,7 @@ class conphantomjs:
         '''
         wait = WebDriverWait(driver, 10)
         img = wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'geetest_canvas_img')))
-        time.sleep(1)  # 保证图片刷新出来
+        time.sleep(2)  # 保证图片刷新出来
         location = img.location
         size = img.size
 
@@ -75,7 +76,7 @@ class conphantomjs:
         :return:需要移动的距离
         '''
         threshold = 60
-        left = 57
+        left = 80
         for i in range(left, image1.size[0]):
             for j in range(image1.size[1]):
                 rgb1 = image1.load()[i, j]
@@ -129,6 +130,24 @@ class conphantomjs:
             v = v0 + a * t
         return tracks
 
+    def list(self, page_source):
+        html_bs = BeautifulSoup(page_source, 'lxml')
+        print(html_bs)
+        # 早上开售时间 最右第一然后从左到右
+        # 月份从右到左
+        # 日从右到左
+        # 鞋名从右到左
+        # 立即选购从左到右
+
+        # 早上开售时间 & 现已发售MheiMedium-HeLvetica
+
+        # 月份en日子number鞋名en立即选购zh  Chei2PRCBold-TradeGothic
+    # https://www.nike.com.hk/special_editions/list.htm
+    # //*[@id="20190218103025218"]/a
+    # //*[@id="20190218103025218"]
+    # //*[@id="2018060517481765"]/a
+    # //*[@id="2018060517481765"]/a/span
+
     def getbody(self):
         """利用phantomjs获取网站源码以及url"""
         d = self.q_phantomjs.get()
@@ -143,7 +162,6 @@ class conphantomjs:
         input_name.send_keys(self.username)
         input_password = wait.until(EC.presence_of_element_located((By.XPATH, "//*[@id='loginPass']")))
         input_password.send_keys(self.password)
-        time.sleep(1)
         button = wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'geetest_radar_tip')))
         button.click()
         time.sleep(1)
@@ -151,7 +169,7 @@ class conphantomjs:
         # 步骤二：拿到没有缺口的图片
         d.execute_script('document.querySelectorAll("canvas")[2].style=""')
         image1 = self.get_image(d, 'ori')
-
+        time.sleep(1)
         # 步骤三：点击拖动按钮，弹出有缺口的图片
         button = wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'geetest_slider_button')))
         button.click()
@@ -171,8 +189,9 @@ class conphantomjs:
         print(image1.size)
         print(distance, sum(tracks))
 
-        # 步骤七：按照轨迹拖动，完全验证
-        button = wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'geetest_slider_button')))
+        # 步骤七：按照轨迹拖动，完全验证"
+        button = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'body > div.geetest_fullpage_click.geetest_float.geetest_wind.geetest_slide3 > div.geetest_fullpage_click_wrap > div.geetest_fullpage_click_box > div > div.geetest_wrap > div.geetest_slider.geetest_ready > div.geetest_slider_button')))
+        # By.CLASS_NAME, 'geetest_slider_button'
         ActionChains(d).click_and_hold(button).perform()
         for track in tracks:
             ActionChains(d).move_by_offset(xoffset=track, yoffset=0).perform()
@@ -182,13 +201,21 @@ class conphantomjs:
 
         time.sleep(0.5)  # 0.5秒后释放鼠标
         ActionChains(d).release().perform()
-        time.sleep(2)
+        time.sleep(1)
         # 步骤八：完成登录
         login = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="guestLogin"]/div[2]/div[5]')))
         login.click()
-        time.sleep(20)
+        time.sleep(2)
+
+        #
+        d.get(special_edition_url)
+        time.sleep(3)
+        content = d.page_source.encode('utf-8')
+        self.list(content)
 
         self.q_phantomjs.put(d)
+
+
 
     def open_phantomjs(self):
     #     """多线程开启phantomjs进程"""
@@ -237,7 +264,7 @@ class conphantomjs:
         print("phantomjs num is ", self.q_phantomjs.qsize())
 
         th = []
-        t = threading.Thread(target=cur.getbody)
+        t = threading.Thread(target=self.getbody)
         th.append(t)
         for i in th:
             i.start()
